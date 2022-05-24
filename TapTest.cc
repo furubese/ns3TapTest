@@ -264,11 +264,11 @@ void MyServer::HandleRead (Ptr<Socket> socket){
 }
 class NodeIpAdder{
   public:
-    NodeIpAdder(NetDeviceContainer NetDevice, Ipv4Address SendToIP){
-      this -> setSendToIP(SendToIP);
+    NodeIpAdder(NetDeviceContainer NetDevice, Ipv4Address SendToIpFilter){
+      this -> setSendToIP(SendToIpFilter);
       this -> setNetDevice(NetDevice);
     }
-    bool callback(Ptr<Packet> p, Ipv4Header &header);
+    void callback(Ptr<const Packet> p,  Ptr<Ipv4> protcol, uint32_t interface);
     void setSendToIP(Ipv4Address ip){ m_SendToIP = ip; }
     void setNetDevice(NetDeviceContainer NetDevice){ m_NetDevice = NetDevice; }
   private:
@@ -277,7 +277,9 @@ class NodeIpAdder{
 
 };
 
-bool NodeIpAdder::callback(Ptr<Packet> p, Ipv4Header &header){
+void NodeIpAdder::callback(Ptr<const Packet> p,  Ptr<Ipv4> protcol, uint32_t interface){
+  Ipv4Header header;
+  p->PeekHeader (header);
   NS_LOG_UNCOND ("======================================");
   NS_LOG_UNCOND ("S:" << header.GetSource() );
   NS_LOG_UNCOND ("D:" << header.GetDestination ());
@@ -325,9 +327,6 @@ bool NodeIpAdder::callback(Ptr<Packet> p, Ipv4Header &header){
     ipv4proto->SetMetric (ifIndex, 1);
     ipv4proto->SetUp (ifIndex);
   }
-  p->AddHeader(header);
-
-  return true;
 }
 
 int 
@@ -441,11 +440,11 @@ main (int argc, char *argv[])
   server_app->SetStartTime (Seconds (1.0));  
 
   /* inj */
-  NodeIpAdder adder_App(devices, "192.168.12.5");//interfacesLeft.GetAddress(0));
-  Callback<bool, Ptr<Packet>, Ipv4Header &> cb = MakeCallback(&NodeIpAdder::callback, &adder_App);
+  NodeIpAdder adder_App(devices, "192.168.12.3");//interfacesLeft.GetAddress(0));
 
   Ptr<Ipv4L3Protocol> ipv4Proto = nodesLeft.Get(1)->GetObject<Ipv4L3Protocol> ();
-  ipv4Proto-> SetMyCallbackWhenReceive(cb);
+  ipv4Proto-> TraceConnectWithoutContext("Rx", MakeCallback(&NodeIpAdder:: callback, &adder_App));
+
 
   //
   // log_config
