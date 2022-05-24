@@ -440,7 +440,7 @@ main (int argc, char *argv[])
   server_app->SetStartTime (Seconds (1.0));  
 
   /* inj */
-  NodeIpAdder adder_App(devices, "192.168.12.3");//interfacesLeft.GetAddress(0));
+  NodeIpAdder adder_App(devices, "10.1.1.1");//interfacesLeft.GetAddress(0));
 
   Ptr<Ipv4L3Protocol> ipv4Proto = nodesLeft.Get(1)->GetObject<Ipv4L3Protocol> ();
   ipv4Proto-> TraceConnectWithoutContext("Rx", MakeCallback(&NodeIpAdder:: callback, &adder_App));
