@@ -237,7 +237,7 @@ main (int argc, char *argv[])
 
   /* inj */
   
-  NodeIpAdder adder_App(devices, "150.19.196.156");
+  NodeIpAdder adder_App(devices, "10.1.1.1");
 
   Ptr<Ipv4L3Protocol> ipv4Proto = nodesLeft.Get(1)->GetObject<Ipv4L3Protocol> ();
   ipv4Proto-> TraceConnectWithoutContext("Rx", MakeCallback(&NodeIpAdder:: callback, &adder_App));
