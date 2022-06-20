@@ -7,7 +7,10 @@
 
 # White List
 !/.gitignore
+!/src/
+!/src/c2-server/
 !/src/c2-server/**/**
+!/scratch/
 !/scratch/*
 
 # Black List
