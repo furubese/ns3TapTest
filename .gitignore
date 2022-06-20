@@ -10,7 +10,7 @@
 !/src/
 !/src/c2-server/
 !/src/c2-server/**/**
-!/scratch/
+!/scratch
 !/scratch/*
 
 # Black List
