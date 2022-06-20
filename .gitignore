@@ -7,6 +7,6 @@
 
 # White List
 !/.gitignore
-!src/c2-server/**
+!/src/c2-server/**
 !/scratch/*.cc
 
