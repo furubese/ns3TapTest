@@ -8,14 +8,14 @@
 
 namespace ns3 {
     DynamicIpCallbackHelper::DynamicIpCallbackHelper(
-        NetDeviceContainer NetDevice,
+        Ptr<NetDevice> NetDevice,
         Ipv4Address SendToIpFilter)
         {
             this -> setNetDevice(NetDevice);
             this -> setSendToIP(SendToIpFilter);
         }
     
-    void DynamicIpCallbackHelper::setNetDevice(NetDeviceContainer NetDevice){ m_NetDevice = NetDevice; }
+    void DynamicIpCallbackHelper::setNetDevice(Ptr<NetDevice> NetDevice){ m_NetDevice = NetDevice; }
     void DynamicIpCallbackHelper::setSendToIP(Ipv4Address ip){ m_SendToIP = ip; }
 
     void DynamicIpCallbackHelper::SetToCallback(Ptr<Node> a_node, DynamicIpCallbackHelper &thisobject)
@@ -32,7 +32,7 @@ namespace ns3 {
         NS_LOG_UNCOND ("S:" << header.GetSource() );
         NS_LOG_UNCOND ("D:" << header.GetDestination ());
         if(m_SendToIP == header.GetDestination()){return;}
-        Ptr<NetDevice> device_app = m_NetDevice.Get(0);
+        Ptr<NetDevice> device_app = m_NetDevice;
         Ptr<Node> node = device_app->GetNode ();
         Ptr<Ipv4> ipv4proto = node->GetObject<Ipv4> ();
         int32_t ifIndex = ipv4proto->GetInterfaceForDevice (device_app);

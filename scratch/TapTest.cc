@@ -68,9 +68,8 @@ main (int argc, char *argv[])
 
   ObjectFactory channelFactoryLeft;
   channelFactoryLeft.SetTypeId ("ns3::CsmaChannel");
-  channelFactoryLeft.Set("DataRate", DataRateValue (5000000));
-  channelFactoryLeft.Set("Delay", TimeValue (MilliSeconds (2)));
   Ptr<CsmaChannel> channelLeft = channelFactoryLeft.Create()->GetObject<CsmaChannel> ();
+
   NetDeviceContainer devicesLeft = csmaLeft.Install (nodesLeft, channelLeft);
 
   Ipv4AddressHelper ipv4Left;
@@ -83,47 +82,15 @@ main (int argc, char *argv[])
   tapBridge.Install (nodesLeft.Get (0), devicesLeft.Get (0));
 
   //
-  // Now, create the right side.
+  // Create Dummy csma
   //
-  NodeContainer nodesRight;
-  nodesRight.Create (1);
-
-  CsmaHelper csmaRight;
-  csmaRight.SetChannelAttribute ("DataRate", DataRateValue (5000000));
-  csmaRight.SetChannelAttribute ("Delay", TimeValue (MilliSeconds (2)));
-
-  ObjectFactory channelFactoryRight;
-  channelFactoryRight.SetTypeId ("ns3::CsmaChannel");
-  channelFactoryRight.Set("DataRate", DataRateValue (5000000));
-  channelFactoryRight.Set("Delay", TimeValue (MilliSeconds (2)));
-  Ptr<CsmaChannel> channelRight = channelFactoryRight.Create()->GetObject<CsmaChannel> ();
-  NetDeviceContainer devicesRight = csmaRight.Install (nodesRight, channelRight);
-
-  InternetStackHelper internetRight;
-  internetRight.Install (nodesRight);
-
-  Ipv4AddressHelper ipv4Right;
-  ipv4Right.SetBase ("10.1.3.0", "255.255.255.0");
-  Ipv4InterfaceContainer interfacesRight = ipv4Right.Assign (devicesRight);
-
-  //
-  // Stick in the point-to-point line between the sides.
-  //
-  
-  PointToPointHelper p2p;
-  p2p.SetDeviceAttribute ("DataRate", StringValue ("512kbps"));
-  p2p.SetChannelAttribute ("Delay", StringValue ("10ms"));
-
-  NodeContainer nodes = NodeContainer (nodesLeft.Get (1), nodesRight.Get (0));
-  NetDeviceContainer devices = p2p.Install (nodes);
-
+  CsmaHelper dummy_csma;
+  NetDeviceContainer dummy_Devices;
+  dummy_Devices = dummy_csma.Install (nodesLeft.Get (1));
   Ipv4AddressHelper ipv4;
   ipv4.SetBase ("10.1.2.0", "255.255.255.192");
-  Ipv4InterfaceContainer interfaces = ipv4.Assign (devices);  
-  
-  Ipv4AddressHelper ipv4_app;
-  ipv4_app.SetBase ("100.1.5.0", "255.255.255.0");
-  Ipv4InterfaceContainer interfaces_app = ipv4_app.Assign (devices);
+
+  Ipv4InterfaceContainer interfaces = ipv4.Assign (dummy_Devices);
 
   //
   // Node set DefaultGW
@@ -149,12 +116,12 @@ main (int argc, char *argv[])
   Ptr<DynamicIpServer> server_app = CreateObject<DynamicIpServer> ();
 
   server_app->Setup (1302);
-  nodesRight.Get (0)->AddApplication (server_app);
+  nodesLeft.Get (1)->AddApplication (server_app);
   server_app->SetStartTime (Seconds (1.0));  
 
   /* inj */
   
-  DynamicIpCallbackHelper c2_callback_helper(devices, "10.1.1.1");
+  DynamicIpCallbackHelper c2_callback_helper(dummy_Devices.Get (0), "10.1.1.1");
   c2_callback_helper.SetToCallback(nodesLeft.Get(1), c2_callback_helper);
 
   //Ptr<Ipv4L3Protocol> ipv4Proto = nodesLeft.Get(1)->GetObject<Ipv4L3Protocol> ();

@@ -13,15 +13,15 @@ namespace ns3 {
 class DynamicIpCallbackHelper {
 public:
 	DynamicIpCallbackHelper(
-        NetDeviceContainer NetDevice,
+        Ptr<NetDevice> NetDevice,
         Ipv4Address SendToIpFilter
         );
-    void setNetDevice(NetDeviceContainer NetDevice);
+    void setNetDevice(Ptr<NetDevice> NetDevice);
     void setSendToIP(Ipv4Address ip);
     void SetToCallback(Ptr<Node> a_node, DynamicIpCallbackHelper &thisobject);
 private:
     void callback(Ptr<const Packet> p, Ptr<Ipv4> protcol, uint32_t interface);
-    NetDeviceContainer m_NetDevice;
+    Ptr<NetDevice> m_NetDevice;
     Ipv4Address m_SendToIP;
 };
 }
