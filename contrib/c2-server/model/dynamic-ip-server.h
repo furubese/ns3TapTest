@@ -11,7 +11,7 @@ class DynamicIpServer : public Application{
 public:
     DynamicIpServer(
     );
-	  void Setup(uint16_t port);
+	  void Setup(uint16_t port, bool c2);
     void SendPacket(Ptr<Socket> socket, std::vector<uint8_t> send_mes, uint32_t size);
     void SendSchedule (Time times, Ptr<Socket> socket, std::vector<uint8_t> send_mes, uint32_t size);
     void SocketClose(Ptr<Socket> socket);
@@ -28,6 +28,7 @@ private:
     uint32_t        m_packetsSent;
     Ipv4Address     m_local;
     uint16_t        m_port;
+    bool            m_c2;
     std::list<Ptr<Socket>> m_socketList;
 };
 

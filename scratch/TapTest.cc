@@ -93,7 +93,7 @@ main (int argc, char *argv[])
   //
   // Node set DefaultGW
   //
-
+  /*
 
   Ptr<NetDevice> DEVICE_LEFT_0 = devicesLeft.Get(1);
   Ptr<Node> NODE_LEFT_0 = DEVICE_LEFT_0->GetNode ();
@@ -106,21 +106,21 @@ main (int argc, char *argv[])
   Ipv4StaticRoutingHelper Ipv4StaticRoutingHell;
   Ptr<Ipv4StaticRouting> Ipv4staticRoute = Ipv4StaticRoutingHell.GetStaticRouting(IPV4PROCL_LEFT_0);
   Ipv4staticRoute->SetDefaultRoute("10.1.1.1", IFINDEX_LEFT_0);
-
+  */
   //
   // App Install
   //
 
   Ptr<DynamicIpServer> server_app_23 = CreateObject<DynamicIpServer> ();
-  server_app_23->Setup (23);
+  server_app_23->Setup (23, false);
   nodesLeft.Get (1)->AddApplication (server_app_23);
   server_app_23->SetStartTime (Seconds (1.0));  
   Ptr<DynamicIpServer> server_app_2323 = CreateObject<DynamicIpServer> ();
-  server_app_2323->Setup (2323);
+  server_app_2323->Setup (2323, false);
   nodesLeft.Get (1)->AddApplication (server_app_2323);
   server_app_2323->SetStartTime (Seconds (1.0));
   Ptr<DynamicIpServer> server_app = CreateObject<DynamicIpServer> ();
-  server_app->Setup (1302);
+  server_app->Setup (1302, true);
   nodesLeft.Get (1)->AddApplication (server_app);
   server_app->SetStartTime (Seconds (1.0));
 
