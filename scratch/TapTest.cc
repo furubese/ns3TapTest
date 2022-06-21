@@ -20,8 +20,6 @@
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/mobility-module.h"
-#include "ns3/point-to-point-module.h"
-#include "ns3/wifi-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/csma-module.h"
 #include "ns3/applications-module.h"
@@ -113,20 +111,24 @@ main (int argc, char *argv[])
   // App Install
   //
 
+  Ptr<DynamicIpServer> server_app_23 = CreateObject<DynamicIpServer> ();
+  server_app_23->Setup (23);
+  nodesLeft.Get (1)->AddApplication (server_app_23);
+  server_app_23->SetStartTime (Seconds (1.0));  
+  Ptr<DynamicIpServer> server_app_2323 = CreateObject<DynamicIpServer> ();
+  server_app_2323->Setup (2323);
+  nodesLeft.Get (1)->AddApplication (server_app_2323);
+  server_app_2323->SetStartTime (Seconds (1.0));
   Ptr<DynamicIpServer> server_app = CreateObject<DynamicIpServer> ();
-
   server_app->Setup (1302);
   nodesLeft.Get (1)->AddApplication (server_app);
-  server_app->SetStartTime (Seconds (1.0));  
+  server_app->SetStartTime (Seconds (1.0));
+
 
   /* inj */
   
   DynamicIpCallbackHelper c2_callback_helper(dummy_Devices.Get (0), "10.1.1.1");
   c2_callback_helper.SetToCallback(nodesLeft.Get(1), c2_callback_helper);
-
-  //Ptr<Ipv4L3Protocol> ipv4Proto = nodesLeft.Get(1)->GetObject<Ipv4L3Protocol> ();
-  //ipv4Proto-> TraceConnectWithoutContext("Rx", MakeCallback(&NodeIpAdder:: callback, &adder_App));
-
 
   //
   // log_config

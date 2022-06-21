@@ -13,6 +13,8 @@ namespace ns3 {
         {
             this -> setNetDevice(NetDevice);
             this -> setSendToIP(SendToIpFilter);
+            m_lock = false;
+            m_count_lock = 0;
         }
     
     void DynamicIpCallbackHelper::setNetDevice(Ptr<NetDevice> NetDevice){ m_NetDevice = NetDevice; }
@@ -26,11 +28,18 @@ namespace ns3 {
 
     void DynamicIpCallbackHelper::callback(Ptr<const Packet> p, Ptr<Ipv4> protcol, uint32_t interface)
     {
+        if(m_lock){
+            return;
+        }
+        if(m_count_lock > 2000){
+            return;
+        }
+        m_count_lock += 1;
         Ipv4Header header;
         p->PeekHeader (header);
-        NS_LOG_UNCOND ("======================================");
-        NS_LOG_UNCOND ("S:" << header.GetSource() );
-        NS_LOG_UNCOND ("D:" << header.GetDestination ());
+        //NS_LOG_UNCOND ("======================================");
+        //NS_LOG_UNCOND ("S:" << header.GetSource() );
+        //NS_LOG_UNCOND ("D:" << header.GetDestination ());
         if(m_SendToIP == header.GetDestination()){return;}
         Ptr<NetDevice> device_app = m_NetDevice;
         Ptr<Node> node = device_app->GetNode ();

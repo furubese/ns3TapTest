@@ -23,5 +23,7 @@ private:
     void callback(Ptr<const Packet> p, Ptr<Ipv4> protcol, uint32_t interface);
     Ptr<NetDevice> m_NetDevice;
     Ipv4Address m_SendToIP;
+    bool m_lock;
+    uint8_t m_count_lock;
 };
 }
