@@ -1,0 +1,13 @@
+# All file ignore
+*
+
+# Directory White
+!*/
+
+# White List
+!/.gitignore
+!/contrib/c2-server/**
+!/scratch/*
+
+# Black List
+/scratch/subdir/
