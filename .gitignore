@@ -6,7 +6,6 @@
 
 # White List
 !/.gitignore
-!/contrib/c2-server/**
 !/scratch/*
 
 # Black List
