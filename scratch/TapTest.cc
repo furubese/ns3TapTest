@@ -59,7 +59,8 @@ private:
   void SendConnectMirai_Start(void);
   void SendConnectMirai_Name(Ptr<Socket> socket);
   void SendConnectMirai_0000(Ptr<Socket> socket);
-
+  void SendWhileRunningHandle(Ptr<Socket> socket, std::vector<uint8_t> send_mes);
+  void ScheduleWhileRunning(Ptr<Socket> socket ,Time times, std::vector<uint8_t> send_mes);
 
   Ptr<Socket>       m_socket;
   Address           m_peer;
@@ -143,9 +144,9 @@ void
 MyApp::SendConnectMirai_Start(void)
 {
   NS_LOG_UNCOND ("[SendPacket A]");
-  SendPacket(m_socket, {0x00, 0x00, 0x00, 0x01});
-  m_socket->SetRecvCallback (MakeCallback (&MyApp::SendConnectMirai_Name, this));
-  ScheduleTx(m_socket, Seconds(5), {0x00, 0x00, 0x00, 0x01});
+  SendPacket(m_socket, {0x33, 0x66, 0x99, 0x01, 0x68});
+  //m_socket->SetRecvCallback (MakeCallback (&MyApp::SendConnectMirai_0000, this));
+  ScheduleTx(m_socket, Seconds(5), {0x33, 0x66, 0x99, 0x01, 0x68});
 }
 
 void
@@ -164,7 +165,7 @@ MyApp::SendConnectMirai_Name(Ptr<Socket> socket)
 void
 MyApp::SendConnectMirai_0000(Ptr<Socket> socket)
 {
-  ScheduleTx(socket, Seconds(9), {0x00, 0x00});
+  ScheduleWhileRunning(socket, Seconds(3), {0x33, 0x66, 0x99});
   Ptr<Packet> packet;
   Address from;
   Address localAddress;
@@ -187,7 +188,7 @@ MyApp::SendConnectMirai_0000(Ptr<Socket> socket)
       received_message_strings += str;
     }
     if(packet_size > 0){
-      Simulator::Cancel(m_sendEvent);
+    //  Simulator::Cancel(m_sendEvent);
     }
     if(hex.find("556e61626c6520746f2063") != std::string::npos){
       m_socket->Close ();
@@ -196,6 +197,20 @@ MyApp::SendConnectMirai_0000(Ptr<Socket> socket)
     }else if(hex.find("313034396c") != std::string::npos){
     }
 
+  }
+}
+void
+MyApp::SendWhileRunningHandle(Ptr<Socket> socket, std::vector<uint8_t> send_mes){
+  uint8_t *p = &send_mes[0];
+  Ptr<Packet> packet = Create<Packet> (p, send_mes.size());
+  socket->Send (packet, 0);
+  ScheduleWhileRunning(socket, Seconds(3), {0x33, 0x66, 0x99});
+}
+void
+MyApp::ScheduleWhileRunning(Ptr<Socket> socket ,Time times, std::vector<uint8_t> send_mes){
+  if (m_running)
+  {
+    m_sendEvent = Simulator::Schedule (times, &MyApp::SendWhileRunningHandle, this, socket, send_mes);
   }
 }
 
@@ -222,8 +237,8 @@ MyApp::ScheduleTx (Ptr<Socket> socket ,Time times, std::vector<uint8_t> send_mes
 int 
 main (int argc, char *argv[])
 {
-  std::string mode = "ConfigureLocal";
-  std::string tapName = "thetap";
+  std::string mode = "ConfigureLocal";//"ConfigureLocal";
+  std::string tapName = "thetap0";
 
   CommandLine cmd (__FILE__);
   cmd.AddValue ("mode", "Mode setting of TapBridge", mode);
@@ -265,7 +280,7 @@ main (int argc, char *argv[])
   //Ptr<Socket> ns3TcpSocket = Socket::CreateSocket (nodesLeft.Get (1), Ipv4RawSocketFactory::GetTypeId ());
   Ptr<Socket> ns3TcpSocket = Socket::CreateSocket (nodesLeft.Get (1), TcpSocketFactory::GetTypeId ());
 
-  Address sinkAddress (InetSocketAddress ("74.11.180.205", 1312));
+  Address sinkAddress (InetSocketAddress ("192.168.10.7", 80));
 
   Ptr<MyApp> app = CreateObject<MyApp> ();
   app->Setup (ns3TcpSocket, sinkAddress, 1040, 5, DataRate ("1Mbps"));
@@ -285,7 +300,7 @@ main (int argc, char *argv[])
 
   Ipv4StaticRoutingHelper Ipv4StaticRoutingHell;
   Ptr<Ipv4StaticRouting> Ipv4staticRoute = Ipv4StaticRoutingHell.GetStaticRouting(IPV4PROCL_LEFT_0);
-  Ipv4staticRoute->SetDefaultRoute("10.1.1.1", IFINDEX_LEFT_0);
+  Ipv4staticRoute->SetDefaultRoute("192.168.10.6", IFINDEX_LEFT_0);
 
   //
   // App Install
