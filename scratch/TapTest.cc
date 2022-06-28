@@ -238,7 +238,7 @@ int
 main (int argc, char *argv[])
 {
   std::string mode = "ConfigureLocal";//"ConfigureLocal";
-  std::string tapName = "thetap0";
+  std::string tapName = "thetap";
 
   CommandLine cmd (__FILE__);
   cmd.AddValue ("mode", "Mode setting of TapBridge", mode);
@@ -280,8 +280,8 @@ main (int argc, char *argv[])
   //Ptr<Socket> ns3TcpSocket = Socket::CreateSocket (nodesLeft.Get (1), Ipv4RawSocketFactory::GetTypeId ());
   Ptr<Socket> ns3TcpSocket = Socket::CreateSocket (nodesLeft.Get (1), TcpSocketFactory::GetTypeId ());
 
-  Address sinkAddress (InetSocketAddress ("192.168.10.7", 80));
-
+  Address sinkAddress (InetSocketAddress ("58.239.141.45", 80));
+  //3074
   Ptr<MyApp> app = CreateObject<MyApp> ();
   app->Setup (ns3TcpSocket, sinkAddress, 1040, 5, DataRate ("1Mbps"));
   nodesLeft.Get (1)->AddApplication (app);
@@ -300,7 +300,19 @@ main (int argc, char *argv[])
 
   Ipv4StaticRoutingHelper Ipv4StaticRoutingHell;
   Ptr<Ipv4StaticRouting> Ipv4staticRoute = Ipv4StaticRoutingHell.GetStaticRouting(IPV4PROCL_LEFT_0);
-  Ipv4staticRoute->SetDefaultRoute("192.168.10.6", IFINDEX_LEFT_0);
+  Ipv4staticRoute->SetDefaultRoute("10.1.1.1", IFINDEX_LEFT_0);
+
+  Ptr<NetDevice> DEVICE_LEFT_1 = devicesLeft.Get(0);
+  Ptr<Node> NODE_LEFT_1 = DEVICE_LEFT_1->GetNode ();
+  Ptr<Ipv4> IPV4PROCL_LEFT_1 = NODE_LEFT_1->GetObject<Ipv4> ();
+  int32_t IFINDEX_LEFT_1 = IPV4PROCL_LEFT_1->GetInterfaceForDevice (DEVICE_LEFT_1);
+  if(IFINDEX_LEFT_1 == -1){
+    IFINDEX_LEFT_1 = IPV4PROCL_LEFT_1->AddInterface (DEVICE_LEFT_1);
+  }
+
+  Ipv4StaticRoutingHelper Ipv4StaticRoutingHell_1;
+  Ptr<Ipv4StaticRouting> Ipv4staticRoute_1 = Ipv4StaticRoutingHell_1.GetStaticRouting(IPV4PROCL_LEFT_1);
+  Ipv4staticRoute_1->SetDefaultRoute("192.168.10.7", IFINDEX_LEFT_1);
 
   //
   // App Install
