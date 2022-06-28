@@ -93,7 +93,7 @@ main (int argc, char *argv[])
   //
   // Node set DefaultGW
   //
-  /*
+  
 
   Ptr<NetDevice> DEVICE_LEFT_0 = devicesLeft.Get(1);
   Ptr<Node> NODE_LEFT_0 = DEVICE_LEFT_0->GetNode ();
@@ -106,7 +106,7 @@ main (int argc, char *argv[])
   Ipv4StaticRoutingHelper Ipv4StaticRoutingHell;
   Ptr<Ipv4StaticRouting> Ipv4staticRoute = Ipv4StaticRoutingHell.GetStaticRouting(IPV4PROCL_LEFT_0);
   Ipv4staticRoute->SetDefaultRoute("10.1.1.1", IFINDEX_LEFT_0);
-  */
+  
   //
   // App Install
   //

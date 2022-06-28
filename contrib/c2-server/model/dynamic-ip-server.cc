@@ -127,8 +127,6 @@ void DynamicIpServer::HandleRead (Ptr<Socket> socket){
       //Watch Dog
       if(hex == "0000"){
         send_mes_8t = {0x00, 0x00};
-        std::vector<uint8_t> send_mes_8t_7 = {0x00, 0x13, 0x00, 0x00, 0x00, 0x0a, 0x0a, 0x01, 0x0a, 0x01, 0x01, 0x01, 0x20, 0x01, 0x07, 0x03, 0x35, 0x35, 0x35};
-        SendSchedule(Seconds(30.0), socket, send_mes_8t_7, send_mes_8t_7.size());
       }else if(hex == "00"){
         send_mes_8t = {0x00, 0x00};
       }
