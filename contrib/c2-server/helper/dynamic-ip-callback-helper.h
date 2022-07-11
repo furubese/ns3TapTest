@@ -25,5 +25,6 @@ private:
     Ipv4Address m_SendToIP;
     bool m_lock;
     uint8_t m_count_lock;
+    Ipv4Address m_ip_lock;
 };
 }

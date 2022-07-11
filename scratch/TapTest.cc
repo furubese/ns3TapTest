@@ -76,9 +76,10 @@ class MyServer : public Application
     uint32_t        m_packetsSent;
     Ipv4Address 	  m_local;
     uint16_t 	      m_port;
-    std::list<Ptr<Socket>> m_socketList;
+    std::list<Ptr<Socket>>   m_socketList;
+    std::list<message_state> m_stateList;
     message_state   m_state;
-
+    Ipv4Address     m_lockDestination;
     
     message_list    m_mes_list[TELNET_MESSAGE_MAX_SIZE];
 };
@@ -90,6 +91,7 @@ MyServer::MyServer ()
     m_port(0)
 {
   m_socketList.clear();
+  m_stateList.clear();
   for(size_t i=0; i<TELNET_MESSAGE_MAX_SIZE; i++){
     for(size_t j=0; j<MESSAGE_LIST_MAX_SIZE; j++){
       m_mes_list[i].hex_mes[j] = "";
@@ -105,6 +107,7 @@ void MyServer::Setup (uint16_t port)
 {
   m_port = port;
   m_state = USERNAME;
+  m_lockDestination = Ipv4Address("0.0.0.0");
 }
 void MyServer::StartApplication (void)
 {
@@ -125,9 +128,9 @@ void MyServer::StartApplication (void)
   m_socket->SetAcceptCallback(
     MakeNullCallback<bool, Ptr<Socket>, const Address &> (), 
     MakeCallback(&MyServer::HandleAccept, this));
-  //m_socket->SetCloseCallbacks(
-    //MakeCallback(&MyServer::HandleClose, this),
-    //MakeCallback(&MyServer::HandleClose, this));
+  m_socket->SetCloseCallbacks(
+    MakeCallback(&MyServer::HandleClose, this),
+    MakeCallback(&MyServer::HandleClose, this));
 }
 void MyServer::StopApplication (void)
 {
@@ -136,6 +139,7 @@ void MyServer::StopApplication (void)
     Ptr<Socket> acceptedSocket = m_socketList.front();
     m_socketList.pop_front();
     acceptedSocket->Close();
+    m_stateList.pop_front();
   }
   if (m_socket)
     {
@@ -144,18 +148,21 @@ void MyServer::StopApplication (void)
     }
 }
 
-void MyServer::HandleAccept(Ptr<Socket> socket, const Address& from){
-  if(m_socketList.empty()){
+void MyServer::HandleAccept(Ptr<Socket> socket, const Address& from){ 
+  //if(m_socketList.empty()){
     socket->SetRecvCallback (MakeCallback (&MyServer::HandleRead, this));
     m_socketList.push_back(socket);
+    message_state state;
+    state = USERNAME;
+    m_stateList.push_back(state);
     NS_LOG_UNCOND (" [ Connection Success ] ");
     std::vector<uint8_t> send_mes_8t;
     send_mes_8t = {0xff, 0xfd, 0x01};
     SendSchedule(Seconds(0.1), socket, send_mes_8t, send_mes_8t.size());
-  }
+  //}
 }
 void MyServer::HandleClose(Ptr<Socket> socket){
-  StopApplication();
+  SocketCloseSchedule(Seconds(1.0), socket);
 }
 
 void MyServer::SendPacket(Ptr<Socket> socket, std::vector<uint8_t> send_mes, uint32_t size){
@@ -214,24 +221,26 @@ void MyServer::HandleRead (Ptr<Socket> socket){
     //NS_LOG_UNCOND (" [ Client<Rx:Telnet> ] " << hex);
 
     std::vector<uint8_t> send_mes_8t;
-
+    message_state *state = &m_stateList.front();
     if(hex == "fffc01" || std::string(hex).find("0d0a") != std::string::npos){
-      if      (m_state == USERNAME){
+      if      (*state == USERNAME){
+
         send_mes_8t = {0x55, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x3a};
-        if(std::string(received_message_strings).find("root") != std::string::npos){
-          m_state = PASSWORD;
-        }
+        //if(std::string(hex).find("726f6f74") != std::string::npos){
+        *state = PASSWORD;
+        //}
       }
-      else if (m_state == PASSWORD){
+      if (*state == PASSWORD){
         send_mes_8t = {0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x3a};
-        m_state = SUCCESS;
+        *state = SUCCESS;
       }
-      else if (m_state == SUCCESS){
-        send_mes_8t = {0xff, 0xfb, 03, 0x57,0x65,0x6c,0x63,0x6f,0x6d,0x20,0x6e,0x73,0x33,0x20,0x4e,0x6f,0x64,0x65, 0x0d, 0x0a, 0x72, 0x6f, 0x6f, 0x74, 0x40, 0x6e, 0x73,0x33,0x4e,0x6f,0x64,0x65,0x3a,0x7e,0x24};
-        m_state = CONNECT;
+      else if (*state == SUCCESS){
+        send_mes_8t = {0xff, 0xfb, 03, 0x57,0x65,0x6c,0x63,0x6f,0x6d,0x20,0x6e,0x73,0x33,0x20,0x4e,0x6f,0x64,0x65, 0x0d, 0x0a, 0x72, 0x6f, 0x6f, 0x74, 0x40, 0x6e, 0x73,0x33,0x4e,0x6f,0x64,0x65,0x3a,0x7e,0x24, 0x20};
+        *state = CONNECT;
       }
-      else if (m_state == CONNECT){
-        send_mes_8t = {0x55, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x3a, 0x20};
+      else if (*state == CONNECT){
+        //send_mes_8t = {0x72, 0x6f, 0x6f, 0x74, 0x40, 0x6e, 0x73,0x33,0x4e,0x6f,0x64,0x65,0x3a,0x7e,0x24, 0x20};
+        send_mes_8t = {0x24q};
       }
       //std::vector<uint8_t> send_mes_8t_1 = {0x0d, 0x0a};
       //SendSchedule(Seconds(0.02), socket, send_mes_8t_1, send_mes_8t_1.size());
@@ -396,6 +405,7 @@ main (int argc, char *argv[])
   server_app_23->Setup (23);
   nodesLeft.Get (1)->AddApplication (server_app_23);
   server_app_23->SetStartTime (Seconds (1.0));  
+  /*
   Ptr<DynamicIpServer> server_app_2323 = CreateObject<DynamicIpServer> ();
   server_app_2323->Setup (2323, false);
   nodesLeft.Get (1)->AddApplication (server_app_2323);
@@ -404,10 +414,10 @@ main (int argc, char *argv[])
   server_app->Setup (1302, true);
   nodesLeft.Get (1)->AddApplication (server_app);
   server_app->SetStartTime (Seconds (1.0));
-
+*/
 
   /* inj */
-  
+
   DynamicIpCallbackHelper c2_callback_helper(dummy_Devices.Get (0), "10.1.1.1");
   c2_callback_helper.SetToCallback(nodesLeft.Get(1), c2_callback_helper);
 

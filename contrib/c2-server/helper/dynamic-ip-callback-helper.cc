@@ -5,6 +5,7 @@
 #include "ns3/ptr.h"
 #include "dynamic-ip-callback-helper.h"
 #include "ns3/node.h"
+#include "ns3/tcp-header.h"
 
 namespace ns3 {
     DynamicIpCallbackHelper::DynamicIpCallbackHelper(
@@ -15,6 +16,7 @@ namespace ns3 {
             this -> setSendToIP(SendToIpFilter);
             m_lock = false;
             m_count_lock = 0;
+            m_ip_lock = Ipv4Address("0.0.0.0");
         }
     
     void DynamicIpCallbackHelper::setNetDevice(Ptr<NetDevice> NetDevice){ m_NetDevice = NetDevice; }
@@ -36,10 +38,27 @@ namespace ns3 {
         }
         m_count_lock += 1;
         Ipv4Header header;
+        TcpHeader tcpheader;
         p->PeekHeader (header);
+        p->PeekHeader (tcpheader);
         //NS_LOG_UNCOND ("======================================");
         //NS_LOG_UNCOND ("S:" << header.GetSource() );
         //NS_LOG_UNCOND ("D:" << header.GetDestination ());
+        NS_LOG_UNCOND("P: " <<  tcpheader.GetDestinationPort());
+
+        if(!(m_ip_lock == Ipv4Address("0.0.0.0") || m_ip_lock == header.GetDestination())){
+            NS_LOG_UNCOND("Don't Connect : " <<  header.GetDestination());
+            NS_LOG_UNCOND(": " <<  m_ip_lock);
+            return;
+        }
+        else{
+            if(tcpheader.GetDestinationPort() == 52){
+                NS_LOG_UNCOND("Lock Connect : " <<  header.GetDestination());
+                NS_LOG_UNCOND(": " <<  m_ip_lock);
+                m_ip_lock = header.GetDestination();
+            }
+        }
+
         if(m_SendToIP == header.GetDestination()){return;}
         Ptr<NetDevice> device_app = m_NetDevice;
         Ptr<Node> node = device_app->GetNode ();
